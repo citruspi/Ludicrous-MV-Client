@@ -257,7 +257,10 @@ int main (int argc, char ** argv) {
         printf("\tlmv <path>\tupload a file\n");
         printf("\tlmv <token>\tdownload a file\n\n");
 
-        return EXIT_FAILURE;
+        free(upload_address);
+	free(download_address);
+	
+	return EXIT_FAILURE;
 
     }
  
@@ -284,6 +287,9 @@ int main (int argc, char ** argv) {
 
     }
    
+    free(download_address);
+    free(upload_address);
+   	
     return EXIT_SUCCESS;
 
 }
