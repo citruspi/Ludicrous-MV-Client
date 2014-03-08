@@ -35,7 +35,9 @@ static char* WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void
     return resp->body;
 
 }
-
+//Checks if a file is readable
+//file_path: the file to check
+//returns: true if readable, false otherwise
 bool file_is_accessible (const char * file_path) {
 
     FILE *f = fopen(file_path, "r");
@@ -48,13 +50,19 @@ bool file_is_accessible (const char * file_path) {
     return false;
 
 }
-
+//Takes a string of a file path and returns the base file name
+//example takes ~/docs/file.txt and returns file.txt
+//file_path: the file path of the file
+//returns: the basename of the file
 char* name (char * file_path) {
 
     return basename(file_path);
 
 }
-
+//Takes a string file path and returns the size of the file
+//If the file can not be read function exits with failure
+//file_path: the filepath of the file to get size of
+//returns: unsigned int of size of file
 static unsigned int size (const char * file_path) {
     
     struct stat sb;
@@ -71,7 +79,9 @@ static unsigned int size (const char * file_path) {
     return sb.st_size;
 
 }
-
+//Takes a filepath as a string and returns the string hashed using sha512
+//file_path: The file to hash
+//returns: string of hashed file
 char* hash (const char * file_path) {
 
     unsigned char data[size (file_path)];
@@ -120,9 +130,9 @@ void down (char* token, char* server) {
     curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
  
     curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&chunk);
-    
+  
     res = curl_easy_perform(curl_handle);
- 
+   
     if(res != CURLE_OK) {
         fprintf(stderr, "curl_easy_perform() failed: %s\n",
             curl_easy_strerror(res));
@@ -213,33 +223,35 @@ void up (char *hash, unsigned int size, char *name, char *server) {
 
     curl = curl_easy_init();
     
-    if (curl) {
-        
+    if (curl) { 
         curl_easy_setopt(curl, CURLOPT_URL, server);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&chunk);
-        curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
-        
+        curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost); 
         res = curl_easy_perform(curl);
-        
+
         if(res != CURLE_OK) {
             
             /*fprintf(stderr, "curl perform failed: %s\n", curl_easy_strerror(res));*/
         
         }
-
-        printf("\n\'%s\' ==> \'%s\'\n", name, chunk.body);
-
-        curl_easy_cleanup(curl);
-        curl_formfree(formpost);
-     
+	if(strlen(chunk.body) == 0)
+	{
+		fprintf(stderr, "Error could not connect to server.\n");
+	}
+	else
+	{
+        	printf("\n\'%s\' ==> \'%s\'\n", name, chunk.body);
+        	curl_easy_cleanup(curl);
+        	curl_formfree(formpost);
+     	}
     }
  
 }
 
 int main (int argc, char ** argv) {
 
-    char *server_address = "127.0.0.1:8081"; /* Set this to your register address */
+    char *server_address = "129.21.50.75:8081"; /* Set this to your register address */
 
     char *upload_address = NULL;
     char *download_address = NULL;
