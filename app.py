@@ -15,7 +15,7 @@ class Files(Model):
 
     class Meta:
 
-        database = SqliteDatabase('f.db', threadlocals=True)
+        database = SqliteDatabase('files.db', threadlocals=True)
 
 Files.create_table(True)
 
