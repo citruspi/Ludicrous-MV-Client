@@ -71,7 +71,9 @@ static unsigned int size (const char * file_path) {
     return sb.st_size;
 
 }
-
+//Takes a filepath as a string and returns the string hashed using sha512
+//file_path: The file to hash
+//returns: string of hashed file
 char* hash (const char * file_path) {
 
     unsigned char data[size (file_path)];
