@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -187,7 +188,7 @@ void up (char *hash, unsigned int size, char *name, char *server) {
  
     struct curl_httppost *formpost=NULL;
     struct curl_httppost *lastptr=NULL;
-    struct curl_slist *headerlist=NULL;
+    //struct curl_slist *headerlist=NULL;
 
     curl_formadd(&formpost,
                  &lastptr,
@@ -256,7 +257,7 @@ int main (int argc, char ** argv) {
         printf("\tlmv <path>\tupload a file\n");
         printf("\tlmv <token>\tdownload a file\n\n");
 
-        return 0;
+        return EXIT_FAILURE;
 
     }
  
@@ -283,6 +284,6 @@ int main (int argc, char ** argv) {
 
     }
    
-    return 0;
+    return EXIT_SUCCESS;
 
 }
