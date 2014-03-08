@@ -120,9 +120,9 @@ void down (char* token, char* server) {
     curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
  
     curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&chunk);
-    
+  
     res = curl_easy_perform(curl_handle);
- 
+   
     if(res != CURLE_OK) {
         fprintf(stderr, "curl_easy_perform() failed: %s\n",
             curl_easy_strerror(res));
@@ -213,33 +213,35 @@ void up (char *hash, unsigned int size, char *name, char *server) {
 
     curl = curl_easy_init();
     
-    if (curl) {
-        
+    if (curl) { 
         curl_easy_setopt(curl, CURLOPT_URL, server);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&chunk);
-        curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
-        
+        curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost); 
         res = curl_easy_perform(curl);
-        
+
         if(res != CURLE_OK) {
             
             /*fprintf(stderr, "curl perform failed: %s\n", curl_easy_strerror(res));*/
         
         }
-
-        printf("\n\'%s\' ==> \'%s\'\n", name, chunk.body);
-
-        curl_easy_cleanup(curl);
-        curl_formfree(formpost);
-     
+	if(strlen(chunk.body) == 0)
+	{
+		fprintf(stderr, "Error could not connect to server.\n");
+	}
+	else
+	{
+        	printf("\n\'%s\' ==> \'%s\'\n", name, chunk.body);
+        	curl_easy_cleanup(curl);
+        	curl_formfree(formpost);
+     	}
     }
  
 }
 
 int main (int argc, char ** argv) {
 
-    char *server_address = "127.0.0.1:8081"; /* Set this to your register address */
+    char *server_address = "129.21.50.75:8081"; /* Set this to your register address */
 
     char *upload_address = NULL;
     char *download_address = NULL;
