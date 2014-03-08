@@ -59,7 +59,10 @@ char* name (char * file_path) {
     return basename(file_path);
 
 }
-
+//Takes a string file path and returns the size of the file
+//If the file can not be read function exits with failure
+//file_path: the filepath of the file to get size of
+//returns: unsigned int of size of file
 static unsigned int size (const char * file_path) {
     
     struct stat sb;
