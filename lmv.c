@@ -188,7 +188,7 @@ void up (char *hash, unsigned int size, char *name, char *server) {
  
     struct curl_httppost *formpost=NULL;
     struct curl_httppost *lastptr=NULL;
-    struct curl_slist *headerlist=NULL;
+    //struct curl_slist *headerlist=NULL;
 
     curl_formadd(&formpost,
                  &lastptr,
