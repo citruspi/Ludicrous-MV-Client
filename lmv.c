@@ -48,7 +48,10 @@ bool file_is_accessible (const char * file_path) {
     return false;
 
 }
-
+//Takes a string of a file path and returns the base file name
+//example takes ~/docs/file.txt and returns file.txt
+//file_path: the file path of the file
+//returns: the basename of the file
 char* name (char * file_path) {
 
     return basename(file_path);
