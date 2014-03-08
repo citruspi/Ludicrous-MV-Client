@@ -34,6 +34,7 @@ def upload():
 
     return short, 200
 
+
 @app.route('/download/<short>', methods=['GET'])
 def download(short):
 
@@ -49,33 +50,6 @@ def download(short):
 
         abort(404)
 
-
-@app.route('/download/<short>/<attribute>', methods=['GET'])
-def download_by_attribute(short, attribute):
-
-    try:
-
-        record = Files.select().where(Files.link == short).get()
-
-        if attribute == 'hash':
-
-        	  return record.hash
-
-        elif attribute == 'name':
-
-            return record.name
-
-        elif attribute == 'size':
-
-            return str(record.size)
-
-        else:
-
-        	  abort(404)
-
-    except Files.DoesNotExist:
-        
-        abort(404)
 
 if __name__ == "__main__":
 
