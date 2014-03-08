@@ -35,7 +35,9 @@ static char* WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void
     return resp->body;
 
 }
-
+//Checks if a file is readable
+//file_path: the file to check
+//returns: true if readable, false otherwise
 bool file_is_accessible (const char * file_path) {
 
     FILE *f = fopen(file_path, "r");
