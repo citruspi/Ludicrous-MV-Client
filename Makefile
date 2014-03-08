@@ -1,6 +1,7 @@
 all:
 
-	clang lmv.c -o lmv -lcrypto -lssl -lcurl
+	#clang lmv.c -o lmv -lcrypto -lssl -lcurl
+	gcc -std=c99 -Wall lmv.c -o lmv -lcrypto -lssl -lcurl
 
 clean:
 
