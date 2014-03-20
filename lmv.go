@@ -38,21 +38,22 @@ func encode(fp string, token bool) {
 	file, err := os.Open(fp)
 
     if err != nil {
-    	// handle error
-        return
+    	log.Fatal(err)
     }
 
     defer file.Close()	
 
     stat, err := file.Stat()
+
     if err != nil {
-        return
+    	log.Fatal(err)
     }
 
     bs := make([]byte, stat.Size())
     _, err = file.Read(bs)
+
     if err != nil {
-        return
+        log.Fatal(err)
     }
 
     lmv_file.hash = CalculateSHA512(string(bs))
@@ -71,7 +72,6 @@ func encode(fp string, token bool) {
     	resp, err := http.PostForm(upload_address, fields)
 
     	if err != nil {
-			// handle error
 			log.Fatal(err)
 		}
 		
@@ -80,7 +80,7 @@ func encode(fp string, token bool) {
 		body, err := ioutil.ReadAll(resp.Body)
 
 		if err != nil {
-			return
+			log.Fatal(err)
 		}
 
 		fmt.Println("'" + lmv_file.name + "'" + " --> " + "'" + string(body) + "'")
@@ -97,7 +97,10 @@ func encode(fp string, token bool) {
 		full += strconv.FormatInt(lmv_file.size, 10)
 
 		err = ioutil.WriteFile(lmv_file.name + ".lmv", []byte(full), 0644)
-    	if err != nil { panic(err) }
+    	
+		if err != nil { 
+			log.Fatal(err)
+		}
 
     }
 
