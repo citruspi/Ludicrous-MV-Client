@@ -87,7 +87,17 @@ func encode(fp string, token bool) {
 	
 	} else {
 
-		// Create local file
+		os.Create(lmv_file.name + ".lmv")
+
+		full := ""
+		full += lmv_file.hash
+		full += "\n"
+		full += lmv_file.name
+		full += "\n"
+		full += strconv.FormatInt(lmv_file.size, 10)
+
+		err = ioutil.WriteFile(lmv_file.name + ".lmv", []byte(full), 0644)
+    	if err != nil { panic(err) }
 
     }
 
