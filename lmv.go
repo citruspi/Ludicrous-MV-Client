@@ -7,6 +7,12 @@ import	(
 	"encoding/hex"
 	"hash"
 	"path/filepath" 
+	"flag"
+	"net/http" 
+	"net/url"
+	"io/ioutil" 	
+	"log"
+	"strconv"
 )
 
 type LMVFile struct {
@@ -25,7 +31,7 @@ func CalculateSHA512(str string) string {
 
 }
 
-func encode(fp string) {
+func encode(fp string, token bool) {
 
 	lmv_file := new(LMVFile)
 
@@ -49,25 +55,53 @@ func encode(fp string) {
         return
     }
 
-    str := string(bs)
-    //fmt.Println(str)
-
-    lmv_file.hash = CalculateSHA512(str)
+    lmv_file.hash = CalculateSHA512(string(bs))
     lmv_file.size = stat.Size()
     lmv_file.name = filepath.Base(fp)
 
-    fmt.Println("Hash: ", lmv_file.hash)
- 	fmt.Println("Size: ", lmv_file.size)   
- 	fmt.Println("Name: ", lmv_file.name)
+	if token {
+
+    	upload_address := "http://127.0.0.1:8081/upload"
+		
+		fields := make(url.Values)
+        fields.Set("name", lmv_file.name)
+        fields.Set("hash", lmv_file.hash)
+        fields.Set("size", strconv.FormatInt(lmv_file.size, 10))
+    	
+    	resp, err := http.PostForm(upload_address, fields)
+
+    	if err != nil {
+			// handle error
+			log.Fatal(err)
+		}
+		
+		defer resp.Body.Close()
+
+		body, err := ioutil.ReadAll(resp.Body)
+
+		if err != nil {
+			return
+		}
+
+		fmt.Println("'" + lmv_file.name + "'" + " --> " + "'" + string(body) + "'")
+	
+	} else {
+
+		// Create local file
+
+    }
 
 }
 
-
 func main() {
+
+	token := flag.Bool("token", false, "Use tokens in place of .lmv files")
+
+	flag.Parse()
 
 	if len(os.Args) < 2 {
 
-		fmt.Println("Usage")
+		fmt.Println("Use lmv -h for usage")
 
 	} else {
 
@@ -75,7 +109,7 @@ func main() {
 	     
 			if _, err := os.Stat(os.Args[i+1]); err == nil {
 
-	    		encode(os.Args[i+1])
+	    		encode(os.Args[i+1], *token)
 
 			}
 
