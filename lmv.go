@@ -21,12 +21,12 @@ type LMVFile struct {
 	name string
 }
 
-func CalculateSHA512(str string) string {
+func CalculateSHA512(data []byte) string {
 
 	var hasher hash.Hash = sha512.New()
 
 	hasher.Reset()
-	hasher.Write([]byte(str))
+	hasher.Write(data)
 	return hex.EncodeToString(hasher.Sum(nil))
 
 }
@@ -56,7 +56,7 @@ func encode(fp string, token bool) {
         log.Fatal(err)
     }
 
-    lmv_file.hash = CalculateSHA512(string(bs))
+    lmv_file.hash = CalculateSHA512(bs)
     lmv_file.size = stat.Size()
     lmv_file.name = filepath.Base(fp)
 
