@@ -67,12 +67,12 @@ func encode(fp string, token bool, register string) {
     if token {
 
         upload_address := register + "/upload"
-        
+
         fields := make(url.Values)
         fields.Set("name", lmv_file.Name)
         fields.Set("hash", lmv_file.Hash)
         fields.Set("size", strconv.FormatInt(lmv_file.Size, 10))
-        
+
         resp, err := http.PostForm(upload_address, fields)
 
         if err != nil {
