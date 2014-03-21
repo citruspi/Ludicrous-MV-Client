@@ -33,7 +33,7 @@ func CalculateSHA512(data []byte) string {
 
 }
 
-func encode(fp string, token bool) {
+func encode(fp string, token bool, register string) {
 
     lmv_file := new(LMVFile)
 
@@ -66,7 +66,7 @@ func encode(fp string, token bool) {
 
     if token {
 
-        upload_address := "http://127.0.0.1:8081/upload"
+        upload_address := register + "/upload"
         
         fields := make(url.Values)
         fields.Set("name", lmv_file.Name)
@@ -112,6 +112,7 @@ func encode(fp string, token bool) {
 func main() {
 
     token := flag.Bool("token", false, "Use tokens in place of .lmv files")
+    register := flag.String("register", "http://127.0.0.1:8081", "Register for tokens (including protocol)")
 
     flag.Parse()
 
@@ -125,7 +126,7 @@ func main() {
          
             if _, err := os.Stat(os.Args[i+1]); err == nil {
 
-                encode(os.Args[i+1], *token)
+                encode(os.Args[i+1], *token, *register)
 
             }
 
