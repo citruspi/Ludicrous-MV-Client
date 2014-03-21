@@ -5,6 +5,7 @@ import  (
     "fmt"
     "crypto/sha512"
     "encoding/hex"
+    "encoding/json"
     "github.com/hinasssan/msgpack-go"
     "hash"
     "path/filepath" 
@@ -13,7 +14,6 @@ import  (
     "net/url"
     "io/ioutil"     
     "log"
-    "strconv"
 )
 
 type LMVFile struct {
@@ -68,11 +68,15 @@ func encode(fp string, token bool, register string) {
 
         upload_address := register + "/upload"
 
-        fields := make(url.Values)
-        fields.Set("name", lmv_file.Name)
-        fields.Set("hash", lmv_file.Hash)
-        fields.Set("size", strconv.FormatInt(lmv_file.Size, 10))
+        packed, err := json.Marshal(lmv_file)
 
+        if err != nil {
+            log.Fatal(err)
+        }
+
+        fields := make(url.Values)
+        fields.Set("file", string(packed))
+        
         resp, err := http.PostForm(upload_address, fields)
 
         if err != nil {

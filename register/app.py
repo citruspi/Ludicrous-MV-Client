@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, abort
 import os
 from peewee import *
+import json
 import random
 import string
 
@@ -11,6 +12,7 @@ class Files(Model):
     hash = CharField()
     size = IntegerField()
     name = CharField()
+    algorithm = CharField()
     link = CharField()
 
     class Meta:
@@ -25,10 +27,13 @@ def upload():
     pool = string.ascii_uppercase + string.digits
     short = ''.join((random.choice(pool)) for x in range(8))
 
+    f = json.loads(request.form.get('file'))
+
     Files.create(
-        hash = request.form.get('hash'),
-        size = request.form.get('size'),
-        name = request.form.get('name'),
+        hash = f['Hash'],
+        size = f['Size'],
+        name = f['Name'],
+        algorithm = f['Algorithm'],
         link = short
     )
 
