@@ -20,6 +20,7 @@ type LMVFile struct {
     Hash string `msgpack:"hash"`
     Size int64  `msgpack:"size"`
     Name string `msgpack:"name"`
+    Algorithm string `msgpack:"algorithm"`
 }
 
 func CalculateSHA512(data []byte) string {
@@ -35,6 +36,8 @@ func CalculateSHA512(data []byte) string {
 func encode(fp string, token bool) {
 
     lmv_file := new(LMVFile)
+
+    lmv_file.Algorithm = "SHA512"
 
     file, err := os.Open(fp)
 
