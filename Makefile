@@ -3,6 +3,10 @@ all:
 	#clang lmv.c -o lmv -lcrypto -lssl -lcurl
 	gcc -std=c99 -Wall lmv.c -o lmv -lcrypto -lssl -lcurl
 
+go:
+
+	go build lmv.go
+
 clean:
 
 	rm -f lmv
