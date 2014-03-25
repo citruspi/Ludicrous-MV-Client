@@ -8,11 +8,11 @@ import  (
     "encoding/json"
     "github.com/hinasssan/msgpack-go"
     "hash"
-    "path/filepath" 
+    "path/filepath"
     "flag"
-    "net/http" 
+    "net/http"
     "net/url"
-    "io/ioutil"     
+    "io/ioutil"
     "log"
 )
 
@@ -45,7 +45,7 @@ func encode(fp string, token bool, register string) {
         log.Fatal(err)
     }
 
-    defer file.Close()  
+    defer file.Close()
 
     stat, err := file.Stat()
 
@@ -76,13 +76,13 @@ func encode(fp string, token bool, register string) {
 
         fields := make(url.Values)
         fields.Set("file", string(packed))
-        
+
         resp, err := http.PostForm(upload_address, fields)
 
         if err != nil {
             log.Fatal(err)
         }
-        
+
         defer resp.Body.Close()
 
         body, err := ioutil.ReadAll(resp.Body)
@@ -92,7 +92,7 @@ func encode(fp string, token bool, register string) {
         }
 
         fmt.Println("'" + lmv_file.Name + "'" + " --> " + "'" + string(body) + "'")
-    
+
     } else {
 
         os.Create(lmv_file.Name + ".lmv")
@@ -101,11 +101,11 @@ func encode(fp string, token bool, register string) {
 
         if err != nil {
             log.Fatal(err)
-        }    
+        }
 
         err = ioutil.WriteFile(lmv_file.Name + ".lmv", b, 0644)
-        
-        if err != nil { 
+
+        if err != nil {
             log.Fatal(err)
         }
 
@@ -127,7 +127,7 @@ func main() {
     } else {
 
         for i := 0; i < len(os.Args[1:]); i++ {
-         
+
             if _, err := os.Stat(os.Args[i+1]); err == nil {
 
                 encode(os.Args[i+1], *token, *register)
