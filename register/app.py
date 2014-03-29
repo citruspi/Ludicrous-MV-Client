@@ -1,61 +1,45 @@
 from flask import Flask, request, jsonify, abort
 import os
-from peewee import *
 import json
 import random
 import string
+from pymongo import MongoClient
 
 app = Flask(__name__)
 
-class Files(Model):
-
-    hash = CharField()
-    size = IntegerField()
-    name = CharField()
-    algorithm = CharField()
-    link = CharField()
-
-    class Meta:
-
-        database = SqliteDatabase('files.db', threadlocals=True)
-
-Files.create_table(True)
+client = MongoClient('localhost', 27017)
+db = client.ludicrous_mv
+collection = db.files
 
 @app.route('/upload', methods=['POST'])
 def upload():
 
     pool = string.ascii_uppercase + string.digits
-    short = ''.join((random.choice(pool)) for x in range(8))
+    token = ''.join((random.choice(pool)) for x in range(8))
 
     f = json.loads(request.form.get('file'))
+    f['token'] = token
 
-    Files.create(
-        hash = f['Hash'],
-        size = f['Size'],
-        name = f['Name'],
-        algorithm = f['Algorithm'],
-        link = short
-    )
+    collection.insert(f)
 
-    return short, 200
+    return token, 200
 
 
-@app.route('/download/<short>', methods=['GET'])
-def download(short):
+@app.route('/download/<token>', methods=['GET'])
+def download(token):
 
-    try:
+    f = collection.find_one({'token':token})
 
-        record = Files.select().where(Files.link == short).get()
-
-        # [:-1] to remove the NULL terminator (?)
-
-        return "%s;%s;%d" % (record.hash[:-1], record.name, record.size)
-
-    except Files.DoesNotExist:
+    if f is None:
 
         abort(404)
 
+    else:
+
+        del f['_id']
+
+        return json.dumps(f)
 
 if __name__ == "__main__":
 
-    app.run(port=8081)
+    app.run(port=8081, debug=True)

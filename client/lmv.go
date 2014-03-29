@@ -17,11 +17,21 @@ import  (
 )
 
 type LMVFile struct {
-    Hash string `msgpack:"hash"`
     Size int64  `msgpack:"size"`
     Name string `msgpack:"name"`
     Algorithm string `msgpack:"algorithm"`
+    Chunks []LMVChunk `msgpack:"chunks"`
 }
+
+type LMVChunk struct {
+    Hash string `msgpack:"hash"`
+    Size int64 `msgpack:"size"`
+    Index int `msgpack:"index"`
+}
+
+// CONSTANTS
+
+const CHUNK_SIZE int64 = 1048576
 
 func CalculateSHA512(data []byte) string {
 
@@ -60,9 +70,48 @@ func encode(fp string, token bool, register string) {
         log.Fatal(err)
     }
 
-    lmv_file.Hash = CalculateSHA512(bs)
     lmv_file.Size = stat.Size()
     lmv_file.Name = filepath.Base(fp)
+
+    chunks := make([]LMVChunk, 1)
+
+    if stat.Size() <= CHUNK_SIZE {
+
+        chunks[0] = LMVChunk {
+            CalculateSHA512(bs),
+            stat.Size(),
+            0,
+        }
+
+    } else {
+
+        chunk_count := stat.Size() / CHUNK_SIZE + 1
+
+        chunks = make([]LMVChunk, chunk_count)
+
+        for i := 0; i < len(chunks) - 1; i++ {
+
+            chunk := bs[int64(i)*CHUNK_SIZE:int64(i+1)*CHUNK_SIZE]
+
+            chunks[i] = LMVChunk{
+                CalculateSHA512(chunk),
+                CHUNK_SIZE,
+                i,
+            }
+
+        }
+
+        chunk := bs[int64(cap(chunks)-1)*CHUNK_SIZE:]
+
+        chunks[cap(chunks)-1] = LMVChunk{
+            CalculateSHA512(chunk),
+            int64(len(chunk)),
+            cap(chunks)-1,
+        }
+
+    }
+
+    lmv_file.Chunks = chunks
 
     if token {
 
