@@ -34,6 +34,7 @@ type LMVChunk struct {
 // CONSTANTS
 
 const CHUNK_SIZE int64 = 1048576
+var REGISTER string = ""
 
 func TarballDirectory(fp string) string {
 
@@ -137,7 +138,7 @@ func CalculateSHA512(data []byte) string {
 
 }
 
-func encode(fp string, token bool, register string) {
+func encode(fp string, token bool) {
 
     lmv_file := new(LMVFile)
 
@@ -223,7 +224,7 @@ func encode(fp string, token bool, register string) {
 
     if token {
 
-        upload_address := register + "/upload"
+        upload_address := REGISTER + "/upload"
 
         packed, err := json.Marshal(lmv_file)
 
@@ -275,6 +276,8 @@ func main() {
     token := flag.Bool("token", false, "Use tokens in place of .lmv files")
     register := flag.String("register", "http://127.0.0.1:8081", "Register for tokens (including protocol)")
 
+    REGISTER = *register
+
     flag.Parse()
 
     if len(os.Args) < 2 {
@@ -287,7 +290,7 @@ func main() {
 
             if _, err := os.Stat(os.Args[i+1]); err == nil {
 
-                encode(os.Args[i+1], *token, *register)
+                encode(os.Args[i+1], *token)
 
             }
 
