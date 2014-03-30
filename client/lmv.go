@@ -3,6 +3,7 @@ package main
 import  (
     "os"
     "fmt"
+    "archive/tar"
     "crypto/sha512"
     "encoding/hex"
     "encoding/json"
@@ -21,6 +22,7 @@ type LMVFile struct {
     Name string `msgpack:"name"`
     Algorithm string `msgpack:"algorithm"`
     Chunks []LMVChunk `msgpack:"chunks"`
+    Tar bool `msgpack:"tar"`
 }
 
 type LMVChunk struct {
@@ -32,6 +34,98 @@ type LMVChunk struct {
 // CONSTANTS
 
 const CHUNK_SIZE int64 = 1048576
+
+func TarballDirectory(fp string) string {
+
+    f, err := ioutil.TempFile("", "")
+
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    type WalkedFile struct {
+        Path string
+        Info os.FileInfo
+    }
+
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    defer f.Close()
+
+    tw := tar.NewWriter(f)
+
+    files := make([]WalkedFile, 0)
+
+    tarball := func(path string, info os.FileInfo, err error) error {
+
+        if info.IsDir() {
+            //
+        } else {
+
+            files = append(files, WalkedFile{
+                Path: path,
+                Info: info,
+            })
+
+        }
+        return nil
+
+    }
+
+    err = filepath.Walk(fp, tarball)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    for _, fr := range files {
+
+        hdr := &tar.Header{
+            Name: fr.Path,
+            Size: fr.Info.Size(),
+        }
+
+        err := tw.WriteHeader(hdr)
+
+        if err != nil {
+            log.Fatal(err)
+        }
+
+        file, err := os.Open(fr.Path)
+
+        if err != nil {
+            log.Fatal(err)
+        }
+
+        defer file.Close()
+
+        stat, err := file.Stat()
+
+        if err != nil {
+            log.Fatal(err)
+        }
+
+        bs := make([]byte, stat.Size())
+        _, err = file.Read(bs)
+
+        if err != nil {
+            log.Fatal(err)
+        }
+
+        if _, err := tw.Write([]byte(bs)); err != nil {
+            log.Fatal(err)
+        }
+
+    }
+
+    if err := tw.Close(); err != nil {
+        log.Fatal(err)
+    }
+
+    return f.Name()
+
+}
 
 func CalculateSHA512(data []byte) string {
 
@@ -49,6 +143,21 @@ func encode(fp string, token bool, register string) {
 
     lmv_file.Algorithm = "SHA512"
 
+    lmv_file.Name = filepath.Base(fp)
+
+    stat, err := os.Stat(fp)
+
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    if stat.IsDir() {
+        fp = TarballDirectory(fp)
+        lmv_file.Tar = true
+    } else {
+        lmv_file.Tar = false
+    }
+
     file, err := os.Open(fp)
 
     if err != nil {
@@ -57,7 +166,7 @@ func encode(fp string, token bool, register string) {
 
     defer file.Close()
 
-    stat, err := file.Stat()
+    stat, err = file.Stat()
 
     if err != nil {
         log.Fatal(err)
@@ -71,7 +180,6 @@ func encode(fp string, token bool, register string) {
     }
 
     lmv_file.Size = stat.Size()
-    lmv_file.Name = filepath.Base(fp)
 
     chunks := make([]LMVChunk, 1)
 
