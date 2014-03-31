@@ -1,16 +1,12 @@
 all:
 
-	#clang lmv.c -o lmv -lcrypto -lssl -lcurl
-	gcc -std=c99 -Wall lmv.c -o lmv -lcrypto -lssl -lcurl
-
-go:
-
 	go build lmv.go
 	go build unlmv.go
 
 clean:
 
 	rm -f lmv
+	rm -f unlmv
 
 install:
 
