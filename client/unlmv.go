@@ -95,7 +95,7 @@ func decode(input string, token bool) {
             log.Fatal(err)
         }
 
-        err = msgpack.Unmarshal(bs, &lmv_file)
+        err = msgpack.Unmarshal(bs, lmv_file)
 
         if err != nil {
             log.Fatal(err)
