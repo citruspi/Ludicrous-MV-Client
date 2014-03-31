@@ -38,7 +38,7 @@ def download(token):
 
         del f['_id']
 
-        return json.dumps(f)
+        return json.dumps(f), 200
 
 if __name__ == "__main__":
 
