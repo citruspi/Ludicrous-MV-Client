@@ -6,6 +6,7 @@ all:
 go:
 
 	go build lmv.go
+	go build unlmv.go
 
 clean:
 
