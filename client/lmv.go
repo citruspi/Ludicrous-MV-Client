@@ -4,36 +4,19 @@ import  (
     "os"
     "fmt"
     "archive/tar"
-    "crypto/sha512"
-    "encoding/hex"
     "encoding/json"
     "github.com/hinasssan/msgpack-go"
-    "hash"
     "path/filepath"
     "flag"
     "net/http"
     "net/url"
     "io/ioutil"
     "log"
+    "./common"
 )
-
-type LMVFile struct {
-    Size int64  `msgpack:"size"`
-    Name string `msgpack:"name"`
-    Algorithm string `msgpack:"algorithm"`
-    Chunks []LMVChunk `msgpack:"chunks"`
-    Tar bool `msgpack:"tar"`
-}
-
-type LMVChunk struct {
-    Hash string `msgpack:"hash"`
-    Size int64 `msgpack:"size"`
-    Index int `msgpack:"index"`
-}
 
 // CONSTANTS
 
-const CHUNK_SIZE int64 = 1048576
 var REGISTER string = ""
 
 func TarballDirectory(fp string) string {
@@ -128,19 +111,9 @@ func TarballDirectory(fp string) string {
 
 }
 
-func CalculateSHA512(data []byte) string {
-
-    var hasher hash.Hash = sha512.New()
-
-    hasher.Reset()
-    hasher.Write(data)
-    return hex.EncodeToString(hasher.Sum(nil))
-
-}
-
 func encode(fp string, token bool) {
 
-    lmv_file := new(LMVFile)
+    lmv_file := new(common.LMVFile)
 
     lmv_file.Algorithm = "SHA512"
 
@@ -182,38 +155,38 @@ func encode(fp string, token bool) {
 
     lmv_file.Size = stat.Size()
 
-    chunks := make([]LMVChunk, 1)
+    chunks := make([]common.LMVChunk, 1)
 
-    if stat.Size() <= CHUNK_SIZE {
+    if stat.Size() <= common.CHUNK_SIZE {
 
-        chunks[0] = LMVChunk {
-            CalculateSHA512(bs),
+        chunks[0] = common.LMVChunk {
+            common.CalculateSHA512(bs),
             stat.Size(),
             0,
         }
 
     } else {
 
-        chunk_count := stat.Size() / CHUNK_SIZE + 1
+        chunk_count := stat.Size() / common.CHUNK_SIZE + 1
 
-        chunks = make([]LMVChunk, chunk_count)
+        chunks = make([]common.LMVChunk, chunk_count)
 
         for i := 0; i < len(chunks) - 1; i++ {
 
-            chunk := bs[int64(i)*CHUNK_SIZE:int64(i+1)*CHUNK_SIZE]
+            chunk := bs[int64(i)*common.CHUNK_SIZE:int64(i+1)*common.CHUNK_SIZE]
 
-            chunks[i] = LMVChunk{
-                CalculateSHA512(chunk),
-                CHUNK_SIZE,
+            chunks[i] = common.LMVChunk{
+                common.CalculateSHA512(chunk),
+                common.CHUNK_SIZE,
                 i,
             }
 
         }
 
-        chunk := bs[int64(cap(chunks)-1)*CHUNK_SIZE:]
+        chunk := bs[int64(cap(chunks)-1)*common.CHUNK_SIZE:]
 
-        chunks[cap(chunks)-1] = LMVChunk{
-            CalculateSHA512(chunk),
+        chunks[cap(chunks)-1] = common.LMVChunk{
+            common.CalculateSHA512(chunk),
             int64(len(chunk)),
             cap(chunks)-1,
         }

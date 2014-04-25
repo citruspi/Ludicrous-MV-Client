@@ -3,50 +3,23 @@ package main
 import  (
     "os"
     "fmt"
-    "crypto/sha512"
-    "encoding/hex"
     "encoding/json"
     "github.com/hinasssan/msgpack-go"
-    "hash"
     "flag"
     "net/http"
     "io/ioutil"
     "log"
     "bytes"
+    "./common"
 )
-
-type LMVFile struct {
-    Size int64  `msgpack:"size"`
-    Name string `msgpack:"name"`
-    Algorithm string `msgpack:"algorithm"`
-    Chunks []LMVChunk `msgpack:"chunks"`
-    Tar bool `msgpack:"tar"`
-}
-
-type LMVChunk struct {
-    Hash string `msgpack:"hash"`
-    Size int64 `msgpack:"size"`
-    Index int `msgpack:"index"`
-}
 
 // CONSTANTS
 
-const CHUNK_SIZE int64 = 1048576
 var REGISTER string = ""
-
-func CalculateSHA512(data []byte) string {
-
-    var hasher hash.Hash = sha512.New()
-
-    hasher.Reset()
-    hasher.Write(data)
-    return hex.EncodeToString(hasher.Sum(nil))
-
-}
 
 func decode(input string, token bool) {
 
-    lmv_file := new(LMVFile)
+    lmv_file := new(common.LMVFile)
 
     if token {
 
@@ -119,7 +92,7 @@ func decode(input string, token bool) {
                 log.Fatal(err)
             }
 
-            if bytes.Equal([]byte(lmv_file.Chunks[i].Hash), []byte(CalculateSHA512(chunk))) {
+            if bytes.Equal([]byte(lmv_file.Chunks[i].Hash), []byte(common.CalculateSHA512(chunk))) {
                 break
             }
 
