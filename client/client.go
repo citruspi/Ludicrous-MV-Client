@@ -1,22 +1,23 @@
 package main
 
-import  (
-    "os"
-    "fmt"
+import (
     "archive/tar"
+    "bytes"
+    "crypto/sha512"
+    "encoding/hex"
     "encoding/json"
-    "github.com/hinasssan/msgpack-go"
-    "path/filepath"
     "flag"
+    "fmt"
+    "hash"
+    "log"
+    "io/ioutil"
     "net/http"
     "net/url"
-    "io/ioutil"
-    "log"
-    "hash"
-    "bytes"
+    "os"
+    "path/filepath"
     "strings"
-    "encoding/hex"
-    "crypto/sha512"
+
+    "github.com/hinasssan/msgpack-go"
 )
 
 // CONSTANTS
