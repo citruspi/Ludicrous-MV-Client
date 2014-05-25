@@ -12,12 +12,42 @@ import  (
     "net/url"
     "io/ioutil"
     "log"
-    "./common"
+    "hash"
+    "bytes"
+    "strings"
+    "encoding/hex"
+    "crypto/sha512"
 )
 
 // CONSTANTS
 
+const CHUNK_SIZE int64 = 1048576
+
 var REGISTER string = ""
+
+type LMVFile struct {
+    Size int64  `msgpack:"size"`
+    Name string `msgpack:"name"`
+    Algorithm string `msgpack:"algorithm"`
+    Chunks []LMVChunk `msgpack:"chunks"`
+    Tar bool `msgpack:"tar"`
+}
+
+type LMVChunk struct {
+    Hash string `msgpack:"hash"`
+    Size int64 `msgpack:"size"`
+    Index int `msgpack:"index"`
+}
+
+func CalculateSHA512(data []byte) string {
+
+    var hasher hash.Hash = sha512.New()
+
+    hasher.Reset()
+    hasher.Write(data)
+    return hex.EncodeToString(hasher.Sum(nil))
+
+}
 
 func TarballDirectory(fp string) string {
 
@@ -113,7 +143,7 @@ func TarballDirectory(fp string) string {
 
 func encode(fp string, token bool) {
 
-    lmv_file := new(common.LMVFile)
+    lmv_file := new(LMVFile)
 
     lmv_file.Algorithm = "SHA512"
 
@@ -155,38 +185,38 @@ func encode(fp string, token bool) {
 
     lmv_file.Size = stat.Size()
 
-    chunks := make([]common.LMVChunk, 1)
+    chunks := make([]LMVChunk, 1)
 
-    if stat.Size() <= common.CHUNK_SIZE {
+    if stat.Size() <= CHUNK_SIZE {
 
-        chunks[0] = common.LMVChunk {
-            common.CalculateSHA512(bs),
+        chunks[0] = LMVChunk {
+            CalculateSHA512(bs),
             stat.Size(),
             0,
         }
 
     } else {
 
-        chunk_count := stat.Size() / common.CHUNK_SIZE + 1
+        chunk_count := stat.Size() / CHUNK_SIZE + 1
 
-        chunks = make([]common.LMVChunk, chunk_count)
+        chunks = make([]LMVChunk, chunk_count)
 
         for i := 0; i < len(chunks) - 1; i++ {
 
-            chunk := bs[int64(i)*common.CHUNK_SIZE:int64(i+1)*common.CHUNK_SIZE]
+            chunk := bs[int64(i)*CHUNK_SIZE:int64(i+1)*CHUNK_SIZE]
 
-            chunks[i] = common.LMVChunk{
-                common.CalculateSHA512(chunk),
-                common.CHUNK_SIZE,
+            chunks[i] = LMVChunk{
+                CalculateSHA512(chunk),
+                CHUNK_SIZE,
                 i,
             }
 
         }
 
-        chunk := bs[int64(cap(chunks)-1)*common.CHUNK_SIZE:]
+        chunk := bs[int64(cap(chunks)-1)*CHUNK_SIZE:]
 
-        chunks[cap(chunks)-1] = common.LMVChunk{
-            common.CalculateSHA512(chunk),
+        chunks[cap(chunks)-1] = LMVChunk{
+            CalculateSHA512(chunk),
             int64(len(chunk)),
             cap(chunks)-1,
         }
@@ -244,6 +274,103 @@ func encode(fp string, token bool) {
 
 }
 
+func decode(input string, token bool) {
+
+    lmv_file := new(LMVFile)
+
+    if token {
+
+        download_address := REGISTER + "/download/" + input
+
+        resp, err := http.Get(download_address)
+
+        if err != nil {
+            log.Fatal(err)
+        }
+
+        defer resp.Body.Close()
+
+        body, err := ioutil.ReadAll(resp.Body)
+
+        if err != nil {
+            log.Fatal(err)
+        }
+
+        err = json.Unmarshal(body, &lmv_file)
+
+        if err != nil {
+            log.Fatal(err)
+        }
+
+    } else {
+
+        file, err := os.Open(input)
+
+        if err != nil {
+            log.Fatal(err)
+        }
+
+        defer file.Close()
+
+        stat, err := file.Stat()
+
+        if err != nil {
+            log.Fatal(err)
+        }
+
+        bs := make([]byte, stat.Size())
+        _, err = file.Read(bs)
+
+        if err != nil {
+            log.Fatal(err)
+        }
+
+        err = msgpack.Unmarshal(bs, lmv_file)
+
+        if err != nil {
+            log.Fatal(err)
+        }
+
+    }
+
+    bs := bytes.NewBuffer(make([]byte, 0))
+
+    for i := 0; i < len(lmv_file.Chunks); i++ {
+
+        chunk := make([]byte, lmv_file.Chunks[i].Size)
+
+        f, err := os.Open("/dev/urandom")
+
+        for {
+
+            _, err = f.Read(chunk)
+
+            if err != nil {
+                log.Fatal(err)
+            }
+
+            if bytes.Equal([]byte(lmv_file.Chunks[i].Hash), []byte(CalculateSHA512(chunk))) {
+                break
+            }
+
+        }
+
+        bs.Write(chunk)
+
+    }
+
+    fo, err := os.Create(lmv_file.Name)
+
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    if _, err := fo.Write(bs.Bytes()); err != nil {
+        log.Fatal(err)
+    }
+
+}
+
 func main() {
 
     token := flag.Bool("token", false, "Use tokens in place of .lmv files")
@@ -259,11 +386,35 @@ func main() {
 
     } else {
 
-        for i := 0; i < len(os.Args[1:]); i++ {
 
-            if _, err := os.Stat(os.Args[i+1]); err == nil {
+        paths := strings.Split(os.Args[0], "/")
+        exec := paths[len(paths)-1]
 
-                encode(os.Args[i+1], *token)
+        if exec == "lmv" {
+
+            for i := 0; i < len(os.Args[1:]); i++ {
+
+                if _, err := os.Stat(os.Args[i+1]); err == nil {
+
+                    encode(os.Args[i+1], *token)
+
+                }
+
+            }
+
+        } else if exec == "unlmv" {
+
+            for i := 0; i < len(os.Args[1:]); i++ {
+
+                if _, err := os.Stat(os.Args[i+1]); err == nil {
+
+                    decode(os.Args[i+1], false)
+
+                } else {
+
+                    decode(os.Args[i+1], true)
+
+                }
 
             }
 

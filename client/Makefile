@@ -1,7 +1,13 @@
-all:
+all: lmv unlmv
 
-	go build lmv.go
-	go build unlmv.go
+lmv:
+
+	go build client.go
+	mv client lmv
+
+unlmv:
+
+	cp lmv unlmv
 
 clean:
 
