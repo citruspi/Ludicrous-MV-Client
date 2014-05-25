@@ -16,6 +16,7 @@ import (
     "os"
     "path/filepath"
     "strings"
+    "time"
 
     "github.com/hinasssan/msgpack-go"
 )
@@ -374,7 +375,10 @@ func decode(input string, token bool) {
 
 func main() {
 
+    start := time.Now()
+
     token := flag.Bool("token", false, "Use tokens in place of .lmv files")
+    timer := flag.Bool("time", false, "Record completion time")
     register := flag.String("register", "http://127.0.0.1:8081", "Register for tokens (including protocol)")
 
     REGISTER = *register
@@ -407,13 +411,17 @@ func main() {
 
             for i := 0; i < len(os.Args[1:]); i++ {
 
-                if _, err := os.Stat(os.Args[i+1]); err == nil {
+                if os.Args[i+1] != "--time" {
 
-                    decode(os.Args[i+1], false)
+                    if _, err := os.Stat(os.Args[i+1]); err == nil {
 
-                } else {
+                        decode(os.Args[i+1], false)
 
-                    decode(os.Args[i+1], true)
+                    } else {
+
+                        decode(os.Args[i+1], true)
+
+                    }
 
                 }
 
@@ -422,4 +430,9 @@ func main() {
         }
 
     }
+
+    if *timer {
+        log.Printf("Completed in %s", time.Since(start))
+    }
+
 }
