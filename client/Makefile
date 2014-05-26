@@ -1,4 +1,4 @@
-all: lmv unlmv
+all: clean lmv unlmv
 
 lmv:
 
