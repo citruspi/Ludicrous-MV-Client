@@ -9,7 +9,6 @@ import (
     "flag"
     "fmt"
     "hash"
-    "log"
     "io/ioutil"
     "net/http"
     "net/url"
@@ -19,6 +18,7 @@ import (
     "time"
 
     "github.com/hinasssan/msgpack-go"
+    "github.com/Sirupsen/logrus"
 )
 
 // CONSTANTS
@@ -26,6 +26,8 @@ import (
 const CHUNK_SIZE int64 = 1048576
 
 var REGISTER string = ""
+var log = logrus.New()
+var v bool = false
 
 type LMVFile struct {
     Size int64  `msgpack:"size"`
@@ -160,8 +162,18 @@ func encode(fp string, token bool) {
     if stat.IsDir() {
         fp = TarballDirectory(fp)
         lmv_file.Tar = true
+        if v {
+            log.WithFields(logrus.Fields{
+                "directory": lmv_file.Name,
+            }).Info("Beginning new encode")
+        }
     } else {
         lmv_file.Tar = false
+        if v {
+            log.WithFields(logrus.Fields{
+                "file": lmv_file.Name,
+            }).Info("Beginning new encode")
+        }
     }
 
     file, err := os.Open(fp)
@@ -197,15 +209,33 @@ func encode(fp string, token bool) {
             0,
         }
 
+        if v {
+            log.WithFields(logrus.Fields{
+                "count": 1,
+            }).Info("Breaking into chunks")
+        }
+
     } else {
 
         chunk_count := stat.Size() / CHUNK_SIZE + 1
+
+        if v {
+            log.WithFields(logrus.Fields{
+                "count": chunk_count-1,
+            }).Info("Breaking into chunks")
+        }
 
         chunks = make([]LMVChunk, chunk_count)
 
         for i := 0; i < len(chunks) - 1; i++ {
 
             chunk := bs[int64(i)*CHUNK_SIZE:int64(i+1)*CHUNK_SIZE]
+
+            if v {
+                log.WithFields(logrus.Fields{
+                    "chunk#": i+1,
+                }).Info("Encoding chunk")
+            }
 
             chunks[i] = LMVChunk{
                 CalculateSHA512(chunk),
@@ -254,6 +284,12 @@ func encode(fp string, token bool) {
             log.Fatal(err)
         }
 
+        if v {
+            log.WithFields(logrus.Fields{
+                "token": string(body),
+            }).Info("Retrieved token from server")
+        }
+
         fmt.Println("'" + lmv_file.Name + "'" + " --> " + "'" + string(body) + "'")
 
     } else {
@@ -270,6 +306,12 @@ func encode(fp string, token bool) {
 
         if err != nil {
             log.Fatal(err)
+        }
+
+        if v {
+            log.WithFields(logrus.Fields{
+                "file": lmv_file.Name + ".lmv",
+            }).Info("Writing output to file")
         }
 
     }
@@ -373,24 +415,43 @@ func decode(input string, token bool) {
 
 }
 
+func init() {
+    log.Formatter = new(logrus.TextFormatter)
+}
+
 func main() {
 
     start := time.Now()
 
     token := flag.Bool("token", false, "Use tokens in place of .lmv files")
-    timer := flag.Bool("time", false, "Record completion time")
+    verbose := flag.Bool("verbose", false, "Provide verbose output")
     register := flag.String("register", "http://127.0.0.1:8081", "Register for tokens (including protocol)")
 
     REGISTER = *register
 
     flag.Parse()
 
+    if *verbose {
+        v = true
+    } else {
+        v = false
+    }
+
+    if v {
+
+        log.WithFields(logrus.Fields{
+            "token": *token,
+            "verbose": *verbose,
+            "register": *register,
+        }).Info("Parsed flags.")
+
+    }
+
     if len(os.Args) < 2 {
 
         fmt.Println("Use lmv -h for usage")
 
     } else {
-
 
         paths := strings.Split(os.Args[0], "/")
         exec := paths[len(paths)-1]
@@ -431,8 +492,12 @@ func main() {
 
     }
 
-    if *timer {
-        log.Printf("Completed in %s", time.Since(start))
+    if v {
+        elapsed := time.Since(start)
+
+        log.WithFields(logrus.Fields{
+            "time": string(elapsed),
+        }).Info("Completed execution.")
     }
 
 }
