@@ -346,6 +346,12 @@ func decode(input string, token bool) {
             log.Fatal(err)
         }
 
+        if v {
+            log.WithFields(logrus.Fields{
+                "token": input,
+            }).Info("Retrieved data using token")
+        }
+
     } else {
 
         file, err := os.Open(input)
@@ -375,6 +381,12 @@ func decode(input string, token bool) {
             log.Fatal(err)
         }
 
+        if v {
+            log.WithFields(logrus.Fields{
+                "file": input,
+            }).Info("Unpacked .lmv file")
+        }
+
     }
 
     bs := bytes.NewBuffer(make([]byte, 0))
@@ -401,6 +413,12 @@ func decode(input string, token bool) {
 
         bs.Write(chunk)
 
+        if v {
+            log.WithFields(logrus.Fields{
+                "chunk#": i+1,
+            }).Info("Rebuilt chunk")
+        }
+
     }
 
     fo, err := os.Create(lmv_file.Name)
@@ -411,6 +429,12 @@ func decode(input string, token bool) {
 
     if _, err := fo.Write(bs.Bytes()); err != nil {
         log.Fatal(err)
+    }
+
+    if v {
+        log.WithFields(logrus.Fields{
+            "file": lmv_file.Name,
+        }).Info("Writing output to file")
     }
 
 }
@@ -472,7 +496,7 @@ func main() {
 
             for i := 0; i < len(os.Args[1:]); i++ {
 
-                if os.Args[i+1] != "--time" {
+                if os.Args[i+1] != "--verbose" {
 
                     if _, err := os.Stat(os.Args[i+1]); err == nil {
 
