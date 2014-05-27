@@ -2,7 +2,9 @@ package main
 
 import (
 	"crypto/rand"
+	"flag"
 	"log"
+	"net/http"
 
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/binding"
@@ -49,6 +51,11 @@ func randstr(length int) string {
 }
 
 func main() {
+
+	host := flag.String("host", "127.0.0.1", "")
+	port := flag.String("port", "5688", "")
+
+	flag.Parse()
 
 	session, err := mgo.Dial(mgo_host)
 
@@ -119,5 +126,5 @@ func main() {
 
 	})
 
-	m.Run()
+	log.Fatal(http.ListenAndServe(*host+":"+*port, m))
 }
