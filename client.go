@@ -25,10 +25,10 @@ import (
 const (
 	CHUNK_SIZE int64  = 1048576
 	REGISTER   string = "http://localhost:5688"
+	v          bool   = true
 )
 
 var log = logrus.New()
-var v bool = false
 
 type LMVFile struct {
 	Size      int64      `msgpack:"size"`
@@ -447,24 +447,8 @@ func init() {
 func main() {
 
 	token := flag.Bool("token", false, "Use tokens in place of .lmv files")
-	verbose := flag.Bool("verbose", false, "Provide verbose output")
 
 	flag.Parse()
-
-	if *verbose {
-		v = true
-	} else {
-		v = false
-	}
-
-	if v {
-
-		log.WithFields(logrus.Fields{
-			"token":   *token,
-			"verbose": *verbose,
-		}).Info("Parsed flags.")
-
-	}
 
 	if len(os.Args) < 2 {
 
