@@ -72,7 +72,21 @@ func main() {
 	m := martini.Classic()
 	m.Use(render.Renderer())
 
-	m.Get("/file/:token", func(params martini.Params, r render.Render) {
+	m.Get("/files/", func(r render.Render) {
+
+		var lmv_files []LMVFile
+
+		err := c.Find(bson.M{}).All(&lmv_files)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		r.JSON(200, lmv_files)
+
+	})
+
+	m.Get("/files/:token/", func(params martini.Params, r render.Render) {
 
 		n, err := c.Find(bson.M{"token": params["token"]}).Count()
 
@@ -96,7 +110,7 @@ func main() {
 
 	})
 
-	m.Post("/file", binding.Bind(LMVFile{}), func(params martini.Params, r render.Render, lmv_file LMVFile) {
+	m.Post("/files/", binding.Bind(LMVFile{}), func(r render.Render, lmv_file LMVFile) {
 
 		token := randstr(token_length)
 
