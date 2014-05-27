@@ -122,7 +122,7 @@ func main() {
 			log.Fatal(err)
 		}
 
-		r.JSON(200, "")
+		r.JSON(200, map[string]interface{}{"token": token})
 
 	})
 
