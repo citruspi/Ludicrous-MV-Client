@@ -15,7 +15,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/hinasssan/msgpack-go"
@@ -447,8 +446,6 @@ func init() {
 
 func main() {
 
-	start := time.Now()
-
 	token := flag.Bool("token", false, "Use tokens in place of .lmv files")
 	verbose := flag.Bool("verbose", false, "Provide verbose output")
 
@@ -512,14 +509,6 @@ func main() {
 
 		}
 
-	}
-
-	if v {
-		elapsed := time.Since(start)
-
-		log.WithFields(logrus.Fields{
-			"time": string(elapsed),
-		}).Info("Completed execution.")
 	}
 
 }
