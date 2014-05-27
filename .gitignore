@@ -2,4 +2,4 @@ lmv
 unlmv
 *.lmv
 *.db
-server
+lmv-server
