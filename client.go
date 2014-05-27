@@ -23,9 +23,11 @@ import (
 
 // CONSTANTS
 
-const CHUNK_SIZE int64 = 1048576
+const (
+	CHUNK_SIZE int64  = 1048576
+	REGISTER   string = "http://localhost:5688"
+)
 
-var REGISTER string = ""
 var log = logrus.New()
 var v bool = false
 
@@ -449,9 +451,6 @@ func main() {
 
 	token := flag.Bool("token", false, "Use tokens in place of .lmv files")
 	verbose := flag.Bool("verbose", false, "Provide verbose output")
-	register := flag.String("register", "http://127.0.0.1:8081", "Register for tokens (including protocol)")
-
-	REGISTER = *register
 
 	flag.Parse()
 
@@ -464,9 +463,8 @@ func main() {
 	if v {
 
 		log.WithFields(logrus.Fields{
-			"token":    *token,
-			"verbose":  *verbose,
-			"register": *register,
+			"token":   *token,
+			"verbose": *verbose,
 		}).Info("Parsed flags.")
 
 	}
