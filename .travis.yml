@@ -9,3 +9,4 @@ go:
 install:
   - go get github.com/Sirupsen/logrus
   - go get github.com/hinasssan/msgpack-go
+  - go get github.com/franela/goreq
