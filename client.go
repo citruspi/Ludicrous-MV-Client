@@ -11,12 +11,12 @@ import (
 	"hash"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/franela/goreq"
 	"github.com/hinasssan/msgpack-go"
 )
 
@@ -29,6 +29,10 @@ const (
 )
 
 var log = logrus.New()
+
+type Token struct {
+	Token string `json:"token"`
+}
 
 type LMVFile struct {
 	Size      int64      `msgpack:"size"`
@@ -260,26 +264,29 @@ func encode(fp string, token bool) {
 
 	if token {
 
-		upload_address := REGISTER + "/upload"
-
-		packed, err := json.Marshal(lmv_file)
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		fields := make(url.Values)
-		fields.Set("file", string(packed))
-
-		resp, err := http.PostForm(upload_address, fields)
+		res, err := goreq.Request{
+			Method:      "POST",
+			Uri:         REGISTER + "/files/",
+			ContentType: "application/json",
+			Body:        lmv_file,
+		}.Do()
 
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		defer resp.Body.Close()
+		if v {
+			log.Info("POST'ed data to the token server")
+		}
 
-		body, err := ioutil.ReadAll(resp.Body)
+		parsed := map[string]interface{}{}
+		response, err := res.Body.ToString()
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		err = json.Unmarshal([]byte(response), &parsed)
 
 		if err != nil {
 			log.Fatal(err)
@@ -287,11 +294,9 @@ func encode(fp string, token bool) {
 
 		if v {
 			log.WithFields(logrus.Fields{
-				"token": string(body),
-			}).Info("Retrieved token from server")
+				"token": parsed["token"],
+			}).Info("Retrieved token from response")
 		}
-
-		fmt.Println("'" + lmv_file.Name + "'" + " --> " + "'" + string(body) + "'")
 
 	} else {
 
