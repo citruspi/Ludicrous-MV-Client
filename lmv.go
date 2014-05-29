@@ -2,7 +2,6 @@ package main
 
 import (
 	"archive/tar"
-	"bytes"
 	"crypto/sha512"
 	"encoding/hex"
 	"encoding/json"
@@ -10,10 +9,8 @@ import (
 	"fmt"
 	"hash"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/franela/goreq"
@@ -29,10 +26,6 @@ const (
 )
 
 var log = logrus.New()
-
-type Token struct {
-	Token string `json:"token"`
-}
 
 type LMVFile struct {
 	Size      int64      `msgpack:"size"`
@@ -324,127 +317,6 @@ func encode(fp string, token bool) {
 
 }
 
-func decode(input string, token bool) {
-
-	lmv_file := new(LMVFile)
-
-	if token {
-
-		download_address := REGISTER + "/files/" + input + "/"
-
-		resp, err := http.Get(download_address)
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		defer resp.Body.Close()
-
-		body, err := ioutil.ReadAll(resp.Body)
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		err = json.Unmarshal(body, &lmv_file)
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		if v {
-			log.WithFields(logrus.Fields{
-				"token": input,
-			}).Info("Retrieved data using token")
-		}
-
-	} else {
-
-		file, err := os.Open(input)
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		defer file.Close()
-
-		stat, err := file.Stat()
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		bs := make([]byte, stat.Size())
-		_, err = file.Read(bs)
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		err = msgpack.Unmarshal(bs, lmv_file)
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		if v {
-			log.WithFields(logrus.Fields{
-				"file": input,
-			}).Info("Unpacked .lmv file")
-		}
-
-	}
-
-	bs := bytes.NewBuffer(make([]byte, 0))
-
-	for i := 0; i < len(lmv_file.Chunks); i++ {
-
-		chunk := make([]byte, lmv_file.Chunks[i].Size)
-
-		f, err := os.Open("/dev/urandom")
-
-		for {
-
-			_, err = f.Read(chunk)
-
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			if bytes.Equal([]byte(lmv_file.Chunks[i].Hash), []byte(CalculateSHA512(chunk))) {
-				break
-			}
-
-		}
-
-		bs.Write(chunk)
-
-		if v {
-			log.WithFields(logrus.Fields{
-				"chunk#": i + 1,
-			}).Info("Rebuilt chunk")
-		}
-
-	}
-
-	fo, err := os.Create(lmv_file.Name)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if _, err := fo.Write(bs.Bytes()); err != nil {
-		log.Fatal(err)
-	}
-
-	if v {
-		log.WithFields(logrus.Fields{
-			"file": lmv_file.Name,
-		}).Info("Writing output to file")
-	}
-
-}
-
 func init() {
 	log.Formatter = new(logrus.TextFormatter)
 }
@@ -461,38 +333,11 @@ func main() {
 
 	} else {
 
-		paths := strings.Split(os.Args[0], "/")
-		exec := paths[len(paths)-1]
+		for i := 0; i < len(os.Args[1:]); i++ {
 
-		if exec == "lmv" {
+			if _, err := os.Stat(os.Args[i+1]); err == nil {
 
-			for i := 0; i < len(os.Args[1:]); i++ {
-
-				if _, err := os.Stat(os.Args[i+1]); err == nil {
-
-					encode(os.Args[i+1], *token)
-
-				}
-
-			}
-
-		} else if exec == "unlmv" {
-
-			for i := 0; i < len(os.Args[1:]); i++ {
-
-				if os.Args[i+1] != "--verbose" {
-
-					if _, err := os.Stat(os.Args[i+1]); err == nil {
-
-						decode(os.Args[i+1], false)
-
-					} else {
-
-						decode(os.Args[i+1], true)
-
-					}
-
-				}
+				encode(os.Args[i+1], *token)
 
 			}
 
