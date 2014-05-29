@@ -330,7 +330,7 @@ func decode(input string, token bool) {
 
 	if token {
 
-		download_address := REGISTER + "/download/" + input
+		download_address := REGISTER + "/files/" + input + "/"
 
 		resp, err := http.Get(download_address)
 
