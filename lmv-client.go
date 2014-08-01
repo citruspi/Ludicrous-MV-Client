@@ -6,8 +6,6 @@ import (
 	"crypto/sha512"
 	"encoding/hex"
 	"encoding/json"
-	"flag"
-	"fmt"
 	"hash"
 	"io/ioutil"
 	"net/http"
@@ -17,6 +15,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/franela/goreq"
 	"github.com/hinasssan/msgpack-go"
+	"gopkg.in/alecthomas/kingpin.v1"
 )
 
 // CONSTANTS
@@ -446,36 +445,31 @@ func init() {
 
 func main() {
 
-	token := flag.Bool("token", false, "Use tokens in place of .lmv files")
-	mode := flag.String("mode", "", "Encode or decode?")
-	flag.Parse()
+	app := kingpin.New("lmv-client", "Hash based compression client.")
+	encodem := app.Command("encode", "Encode mode")
+	token := encodem.Flag("token", "Use tokens in place of .lmv files").Bool()
+	targete := encodem.Arg("target", "File to encode").Required().Strings()
+	decodem := app.Command("decode", "Decode mode")
+	targetd := decodem.Arg("target", "File/token to decode").Required().Strings()
 
-	if len(os.Args) < 3 {
+	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
 
-		fmt.Println("Use lmv -h for usage")
+	case "encode":
 
-	} else {
-
-		for i := 0; i < len(os.Args[1:]); i++ {
-
-			if *mode == "encode" {
-				if _, err := os.Stat(os.Args[i+1]); err == nil {
-
-					encode(os.Args[i+1], *token)
-
-				}
-			} else if *mode == "decode" {
-				if _, err := os.Stat(os.Args[i+3]); err == nil {
-
-					decode(os.Args[i+3], false)
-
-				} else {
-
-					decode(os.Args[i+3], true)
-
-				}
+		for _, target := range *targete {
+			if _, err := os.Stat(target); err == nil {
+				encode(target, *token)
 			}
+		}
 
+	case "decode":
+
+		for _, target := range *targetd {
+			if _, err := os.Stat(target); err == nil {
+				decode(target, false)
+			} else {
+				decode(target, true)
+			}
 		}
 
 	}
