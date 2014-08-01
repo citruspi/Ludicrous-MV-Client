@@ -1,17 +1,17 @@
-all: clean lmv
+all: clean lmv-client
 
-lmv:
+lmv-client:
 
-	go build lmv.go
+	go build lmv-client.go
 
 clean:
 
-	rm -f lmv
+	rm -f lmv-client
 
 install:
 
-	cp lmv /usr/local/bin/lmv
+	cp lmv /usr/local/bin/lmv-client
 
 uninstall:
 
-	rm -f /usr/local/bin/lmv
+	rm -f /usr/local/bin/lmv-client
