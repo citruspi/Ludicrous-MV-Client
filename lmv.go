@@ -3,7 +3,7 @@ package main
 import (
 	"archive/tar"
 	"encoding/json"
-	common "github.com/citruspi/Ludicrous-MV-Common"
+	lmv "github.com/citruspi/Ludicrous-MV-Common"
 	"github.com/franela/goreq"
 	"github.com/hinasssan/msgpack-go"
 	"github.com/sirupsen/logrus"
@@ -120,7 +120,7 @@ func TarballDirectory(fp string) string {
 
 func Encode(fp string, token bool) {
 
-	lmv_file := new(common.LMVFile)
+	lmv_file := new(lmv.File)
 
 	lmv_file.Algorithm = "SHA512"
 
@@ -172,12 +172,12 @@ func Encode(fp string, token bool) {
 
 	lmv_file.Size = stat.Size()
 
-	chunks := make([]common.LMVChunk, 1)
+	chunks := make([]lmv.Chunk, 1)
 
 	if stat.Size() <= CHUNK_SIZE {
 
-		chunks[0] = common.LMVChunk{
-			common.CalculateSHA512(bs),
+		chunks[0] = lmv.Chunk{
+			lmv.CalculateSHA512(bs),
 			stat.Size(),
 			0,
 		}
@@ -198,7 +198,7 @@ func Encode(fp string, token bool) {
 			}).Info("Breaking into chunks")
 		}
 
-		chunks = make([]common.LMVChunk, chunk_count)
+		chunks = make([]lmv.Chunk, chunk_count)
 
 		for i := 0; i < len(chunks)-1; i++ {
 
@@ -210,8 +210,8 @@ func Encode(fp string, token bool) {
 				}).Info("Encoding chunk")
 			}
 
-			chunks[i] = common.LMVChunk{
-				common.CalculateSHA512(chunk),
+			chunks[i] = lmv.Chunk{
+				lmv.CalculateSHA512(chunk),
 				CHUNK_SIZE,
 				i,
 			}
@@ -220,8 +220,8 @@ func Encode(fp string, token bool) {
 
 		chunk := bs[int64(cap(chunks)-1)*CHUNK_SIZE:]
 
-		chunks[cap(chunks)-1] = common.LMVChunk{
-			common.CalculateSHA512(chunk),
+		chunks[cap(chunks)-1] = lmv.Chunk{
+			lmv.CalculateSHA512(chunk),
 			int64(len(chunk)),
 			cap(chunks) - 1,
 		}

@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	common "github.com/citruspi/Ludicrous-MV-Common"
+	lmv "github.com/citruspi/Ludicrous-MV-Common"
 	"github.com/hinasssan/msgpack-go"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/alecthomas/kingpin.v1"
@@ -25,7 +25,7 @@ const (
 
 func Decode(input string, token bool) {
 
-	lmv_file := new(common.LMVFile)
+	lmv_file := new(lmv.File)
 
 	if token {
 
@@ -110,7 +110,7 @@ func Decode(input string, token bool) {
 				log.Fatal(err)
 			}
 
-			if bytes.Equal([]byte(lmv_file.Chunks[i].Hash), []byte(common.CalculateSHA512(chunk))) {
+			if bytes.Equal([]byte(lmv_file.Chunks[i].Hash), []byte(lmv.CalculateSHA512(chunk))) {
 				break
 			}
 
