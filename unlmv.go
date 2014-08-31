@@ -1,9 +1,9 @@
 package main
 
 import (
-	"./common"
 	"bytes"
 	"encoding/json"
+	common "github.com/citruspi/Ludicrous-MV-Common"
 	"github.com/hinasssan/msgpack-go"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/alecthomas/kingpin.v1"

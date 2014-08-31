@@ -1,9 +1,9 @@
 package main
 
 import (
-	"./common"
 	"archive/tar"
 	"encoding/json"
+	common "github.com/citruspi/Ludicrous-MV-Common"
 	"github.com/franela/goreq"
 	"github.com/hinasssan/msgpack-go"
 	"github.com/sirupsen/logrus"
