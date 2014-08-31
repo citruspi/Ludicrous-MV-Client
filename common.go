@@ -6,15 +6,15 @@ import (
 	"hash"
 )
 
-type LMVFile struct {
+type File struct {
 	Size      int64      `msgpack:"size"`
 	Name      string     `msgpack:"name"`
 	Algorithm string     `msgpack:"algorithm"`
-	Chunks    []LMVChunk `msgpack:"chunks"`
+	Chunks    []Chunk    `msgpack:"chunks"`
 	Tar       bool       `msgpack:"tar"`
 }
 
-type LMVChunk struct {
+type Chunk struct {
 	Hash  string `msgpack:"hash"`
 	Size  int64  `msgpack:"size"`
 	Index int    `msgpack:"index"`
