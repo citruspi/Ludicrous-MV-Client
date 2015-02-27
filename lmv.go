@@ -3,7 +3,7 @@ package main
 import (
 	"archive/tar"
 	"encoding/json"
-	lmv "github.com/citruspi/Ludicrous-MV-Common"
+	lmv "github.com/citruspi/Ludicrous-MV-Client/common"
 	"github.com/franela/goreq"
 	"github.com/hinasssan/msgpack-go"
 	"github.com/sirupsen/logrus"

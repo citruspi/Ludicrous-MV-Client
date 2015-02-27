@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	lmv "github.com/citruspi/Ludicrous-MV-Common"
+	lmv "github.com/citruspi/Ludicrous-MV-Client/common"
 	"github.com/hinasssan/msgpack-go"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/alecthomas/kingpin.v1"
